@@ -8,6 +8,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 - GitHub Pages site in Korean, English and Japanese
 - Badges and links to the website, releases and changelog in the READMEs
+- Daily CI run against the latest Claude Code, and Dependabot updates for GitHub Actions
 
 ## [0.1.0] - 2026-10-29
 
