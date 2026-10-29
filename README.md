@@ -1,10 +1,16 @@
 # claude-turn-duration
 
+[![release](https://img.shields.io/github/v/release/M1nu0x0/claude-turn-duration)](https://github.com/M1nu0x0/claude-turn-duration/releases)
+[![CI](https://github.com/M1nu0x0/claude-turn-duration/actions/workflows/ci.yml/badge.svg)](https://github.com/M1nu0x0/claude-turn-duration/actions/workflows/ci.yml)
+[![license](https://img.shields.io/github/license/M1nu0x0/claude-turn-duration)](LICENSE)
+
 **한국어** | [English](docs/README.en.md) | [日本語](docs/README.ja.md)
 
 Claude Desktop 답변 아래에도 터미널처럼 `✻ Churned for 5s · done 14:48` 줄을 그려주는 Claude Code mod입니다.
 
 Claude Code 터미널은 답변이 끝날 때마다 걸린 시간과 끝난 시각을 한 줄로 보여주지만, Claude Desktop에는 이 줄이 보이지 않습니다. 그래서 Claude Code의 mod(hooks 모듈)로 같은 줄을 직접 그리도록 구현했습니다.
+
+**[Website](https://m1nu0x0.github.io/claude-turn-duration/) · [Releases](https://github.com/M1nu0x0/claude-turn-duration/releases) · [Changelog](CHANGELOG.md)**
 
 | Claude Desktop (이 mod) | 터미널 (Claude Code 기본) |
 | --- | --- |

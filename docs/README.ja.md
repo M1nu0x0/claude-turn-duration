@@ -1,10 +1,16 @@
 # claude-turn-duration
 
+[![release](https://img.shields.io/github/v/release/M1nu0x0/claude-turn-duration)](https://github.com/M1nu0x0/claude-turn-duration/releases)
+[![CI](https://github.com/M1nu0x0/claude-turn-duration/actions/workflows/ci.yml/badge.svg)](https://github.com/M1nu0x0/claude-turn-duration/actions/workflows/ci.yml)
+[![license](https://img.shields.io/github/license/M1nu0x0/claude-turn-duration)](../LICENSE)
+
 [한국어](../README.md) | [English](README.en.md) | **日本語**
 
 Claude Desktop の回答の下にも、ターミナルと同じ `✻ Churned for 5s · done 14:48` の行を表示する Claude Code の mod です。
 
 Claude Code のターミナルは回答が終わるたびに、かかった時間と終了時刻を 1 行で表示しますが、Claude Desktop にはこの行が表示されません。そこで Claude Code の mod（hooks モジュール）として、同じ行を自前で描画するように実装しました。
+
+**[Website](https://m1nu0x0.github.io/claude-turn-duration/) · [Releases](https://github.com/M1nu0x0/claude-turn-duration/releases) · [Changelog](../CHANGELOG.md)**
 
 | Claude Desktop（この mod） | ターミナル（Claude Code 標準） |
 | --- | --- |

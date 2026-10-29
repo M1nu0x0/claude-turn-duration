@@ -1,10 +1,16 @@
 # claude-turn-duration
 
+[![release](https://img.shields.io/github/v/release/M1nu0x0/claude-turn-duration)](https://github.com/M1nu0x0/claude-turn-duration/releases)
+[![CI](https://github.com/M1nu0x0/claude-turn-duration/actions/workflows/ci.yml/badge.svg)](https://github.com/M1nu0x0/claude-turn-duration/actions/workflows/ci.yml)
+[![license](https://img.shields.io/github/license/M1nu0x0/claude-turn-duration)](../LICENSE)
+
 [한국어](../README.md) | **English** | [日本語](README.ja.md)
 
 A Claude Code mod that draws the terminal's `✻ Churned for 5s · done 14:48` line beneath answers in Claude Desktop too.
 
 The Claude Code terminal shows one line at the end of each answer with how long the turn took and when it finished, but Claude Desktop does not show this line. So I implemented it as a Claude Code mod (a hooks module) that draws the same line itself.
+
+**[Website](https://m1nu0x0.github.io/claude-turn-duration/) · [Releases](https://github.com/M1nu0x0/claude-turn-duration/releases) · [Changelog](../CHANGELOG.md)**
 
 | Claude Desktop (this mod) | Terminal (Claude Code built-in) |
 | --- | --- |
