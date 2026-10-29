@@ -17,9 +17,9 @@ jobs:
       - name: Compare the tag with plugin.json's version
         run: |
           tag="${GITHUB_REF_NAME#v}"
-          version=$(jq -r .version .claude-plugin/plugin.json)
+          version=$(jq -r .version plugins/turn-duration/.claude-plugin/plugin.json)
           if [ "$tag" != "$version" ]; then
-            echo "::error title=version mismatch::tag $GITHUB_REF_NAME, but .claude-plugin/plugin.json says $version"
+            echo "::error title=version mismatch::tag $GITHUB_REF_NAME, but plugins/turn-duration/.claude-plugin/plugin.json says $version"
             exit 1
           fi
-          echo "::notice title=version matches::tag $GITHUB_REF_NAME = .claude-plugin/plugin.json $version"
+          echo "::notice title=version matches::tag $GITHUB_REF_NAME = plugins/turn-duration/.claude-plugin/plugin.json $version"

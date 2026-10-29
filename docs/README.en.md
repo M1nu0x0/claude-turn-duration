@@ -51,25 +51,31 @@ The `✻ … for Ns` line you see in the terminal is not from this mod; it is th
 
 ```
 .claude-plugin/
-  plugin.json        plugin manifest
   marketplace.json   registers this repository as a marketplace
-hooks/
-  hooks.json         list of hooks modules
-  register.tsx       turn.complete / ui.render hooks
-  format.ts          word, duration and clock formatting
-types/index.d.ts     $.state type contract
-tests/               tests for claude plugin test
-docs/                README translations (en, ja), screenshots
+plugins/turn-duration/
+  .claude-plugin/
+    plugin.json      plugin manifest
+  hooks/
+    hooks.json       list of hooks modules
+    register.tsx     turn.complete / ui.render hooks
+    format.ts        word, duration and clock formatting
+  types/index.d.ts   $.state type contract
+  tests/             tests for claude plugin test
+docs/                README translations (en, ja), screenshots,
+                     GitHub Pages site
 ```
+
+The plugin lives in its own folder, `plugins/turn-duration/`, and the marketplace points at it with a relative path, because claude.ai's Add marketplace can reject a repository whose root is itself the plugin.
 
 ## Development
 
 ```sh
-claude plugin validate .
-claude plugin test .
+claude plugin validate .                     # marketplace
+claude plugin validate plugins/turn-duration  # plugin
+claude plugin test plugins/turn-duration
 ```
 
-For a new version, merge a PR that bumps `version` in `.claude-plugin/plugin.json`, then create a `vX.Y.Z` Release with the same version. When the tag is created, CI checks that the tag and `version` match.
+For a new version, merge a PR that bumps `version` in `plugins/turn-duration/.claude-plugin/plugin.json`, then create a `vX.Y.Z` Release with the same version. When the tag is created, CI checks that the tag and `version` match.
 
 ## License
 

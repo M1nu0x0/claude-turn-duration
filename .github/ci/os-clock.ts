@@ -1,9 +1,9 @@
-// Runs hooks/prefs.ts's readClockPrefs against this OS's real settings, changing them scenario by scenario.
+// Runs plugins/turn-duration/hooks/prefs.ts's readClockPrefs against this OS's real settings, changing them scenario by scenario.
 // `$` here is a stand-in with the two nouns readClockPrefs uses: process.run (no shell) and env.get.
 import { spawnSync } from 'node:child_process'
 
-import { clockFormat, type ClockPrefs } from '../../hooks/format'
-import { readClockPrefs } from '../../hooks/prefs'
+import { clockFormat, type ClockPrefs } from '../../plugins/turn-duration/hooks/format'
+import { readClockPrefs } from '../../plugins/turn-duration/hooks/prefs'
 
 type Env = Record<string, string | undefined>
 type Scenario = { name: string; setup?: () => void; env?: Env; expect: ClockPrefs }

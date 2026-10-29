@@ -2,10 +2,5 @@
   "name": "claude-turn-duration",
   "owner": { "name": "M1nu0x0", "url": "https://github.com/M1nu0x0" },
   "description": "A Claude Code mod that draws the terminal's turn-duration line beneath answers in Claude Desktop",
-  "plugins": [
-    {
-      "name": "turn-duration",
-      "source": { "source": "github", "repo": "M1nu0x0/claude-turn-duration" }
-    }
-  ]
+  "plugins": [{ "name": "turn-duration", "source": "./plugins/turn-duration" }]
 }
