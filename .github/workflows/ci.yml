@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Install gsettings and the GNOME schemas
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -y -q libglib2.0-bin gsettings-desktop-schemas
+
+      - name: Validate
+        run: claude plugin validate .
+
+      - name: Unit tests
+        run: claude plugin test .
+
+      - name: OS clock settings
+        env:
+          GSETTINGS_BACKEND: keyfile
+        run: npx --yes tsx .github/ci/os-clock.ts
+
+      - name: Engine probe (session.start without login)
+        continue-on-error: true
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          cp hooks/format.ts hooks/prefs.ts .github/ci/clock-probe/hooks/
+          out=$(claude -p --plugin-dir .github/ci/clock-probe --max-turns 1 "Reply with just: ok" 2>&1 | tail -n 3 | tr '\n' ' ') || true
+          if [ -f clock-probe.json ]; then
+            echo "::notice title=engine probe (${{ runner.os }})::$(cat clock-probe.json)"
+          else
+            echo "::warning title=engine probe (${{ runner.os }})::session.start wrote nothing; claude said: $out"
+          fi

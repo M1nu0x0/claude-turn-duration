@@ -1,0 +1,14 @@
+{
+  "name": "turn-duration",
+  "version": "0.1.0",
+  "description": "The terminal's turn-end line (Crunched for 4s · done 13:15) beneath each answer on surfaces that do not draw it",
+  "author": {
+    "name": "M1nu0x0",
+    "url": "https://github.com/M1nu0x0"
+  },
+  "homepage": "https://github.com/M1nu0x0/claude-turn-duration",
+  "repository": "https://github.com/M1nu0x0/claude-turn-duration",
+  "license": "MIT",
+  "keywords": ["claude-desktop", "mod", "turn-duration", "ui"],
+  "types": "./types/index.d.ts"
+}
