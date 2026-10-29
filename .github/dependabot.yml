@@ -1,0 +1,7 @@
+version: 2
+updates:
+  # The repo's only outside dependencies are the actions its workflows use.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

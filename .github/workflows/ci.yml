@@ -5,6 +5,9 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
+  # Daily against the latest Claude Code: the mods API is early access and can change between releases.
+  schedule:
+    - cron: "17 18 * * *" # 03:17 KST
   workflow_dispatch:
 
 permissions:
@@ -27,6 +30,10 @@ jobs:
 
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code
+
+      - name: Record the Claude Code version
+        shell: bash
+        run: echo "::notice title=Claude Code (${{ runner.os }})::$(claude --version)"
 
       - name: Install gsettings and the GNOME schemas
         if: runner.os == 'Linux'
