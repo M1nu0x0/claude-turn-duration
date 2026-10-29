@@ -39,11 +39,14 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update -q && sudo apt-get install -y -q libglib2.0-bin gsettings-desktop-schemas
 
-      - name: Validate
+      - name: Validate the marketplace
         run: claude plugin validate .
 
+      - name: Validate the plugin
+        run: claude plugin validate plugins/turn-duration
+
       - name: Unit tests
-        run: claude plugin test .
+        run: claude plugin test plugins/turn-duration
 
       - name: OS clock settings
         env:
@@ -55,7 +58,7 @@ jobs:
         timeout-minutes: 3
         shell: bash
         run: |
-          cp hooks/format.ts hooks/prefs.ts .github/ci/clock-probe/hooks/
+          cp plugins/turn-duration/hooks/format.ts plugins/turn-duration/hooks/prefs.ts .github/ci/clock-probe/hooks/
           out=$(claude -p --plugin-dir .github/ci/clock-probe --max-turns 1 "Reply with just: ok" 2>&1 | tail -n 3 | tr '\n' ' ') || true
           if [ -f clock-probe.json ]; then
             echo "::notice title=engine probe (${{ runner.os }})::$(cat clock-probe.json)"

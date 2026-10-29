@@ -51,25 +51,31 @@ Claude Desktop では、プロンプト横の `+` → Plugins → Add marketplac
 
 ```
 .claude-plugin/
-  plugin.json        プラグインマニフェスト
   marketplace.json   このリポジトリ自体をマーケットプレイスとして登録
-hooks/
-  hooks.json         hooks モジュールの一覧
-  register.tsx       turn.complete / ui.render フック
-  format.ts          単語・時間・時刻のフォーマット
-types/index.d.ts     $.state の型定義
-tests/               claude plugin test 用のテスト
-docs/                README の翻訳（en、ja）、スクリーンショット
+plugins/turn-duration/
+  .claude-plugin/
+    plugin.json      プラグインマニフェスト
+  hooks/
+    hooks.json       hooks モジュールの一覧
+    register.tsx     turn.complete / ui.render フック
+    format.ts        単語・時間・時刻のフォーマット
+  types/index.d.ts   $.state の型定義
+  tests/             claude plugin test 用のテスト
+docs/                README の翻訳（en、ja）、スクリーンショット、
+                     GitHub Pages サイト
 ```
+
+プラグインは `plugins/turn-duration/` に分けて置き、マーケットプレイスから相対パスで参照します。claude.ai の Add marketplace は、リポジトリのルート自体がプラグインになっている構成を受け付けない場合があるためです。
 
 ## 開発
 
 ```sh
-claude plugin validate .
-claude plugin test .
+claude plugin validate .                     # マーケットプレイス
+claude plugin validate plugins/turn-duration  # プラグイン
+claude plugin test plugins/turn-duration
 ```
 
-新しいバージョンは、`.claude-plugin/plugin.json` の `version` を上げる PR をマージしてから、同じバージョンで `vX.Y.Z` の Release を作成します。タグが作成されると、CI がタグと `version` が一致するかを確認します。
+新しいバージョンは、`plugins/turn-duration/.claude-plugin/plugin.json` の `version` を上げる PR をマージしてから、同じバージョンで `vX.Y.Z` の Release を作成します。タグが作成されると、CI がタグと `version` が一致するかを確認します。
 
 ## License
 

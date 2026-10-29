@@ -1,4 +1,4 @@
-// CI copies hooks/format.ts and hooks/prefs.ts beside this file before loading it with --plugin-dir.
+// CI copies plugins/turn-duration/hooks/format.ts and prefs.ts beside this file before loading it with --plugin-dir.
 import type { Register } from 'claude-code'
 
 import { clockFormat } from './format'

@@ -51,25 +51,31 @@ Claude Desktop에서는 프롬프트 옆 `+` → Plugins → Add marketplace에 
 
 ```
 .claude-plugin/
-  plugin.json        플러그인 매니페스트
-  marketplace.json   이 레포 자체를 마켓플레이스로 등록
-hooks/
-  hooks.json         hooks 모듈 목록
-  register.tsx       turn.complete / ui.render 훅
-  format.ts          단어, 시간, 시각 포맷
-types/index.d.ts     $.state 타입 계약
-tests/               claude plugin test 용 테스트
-docs/                README 번역본(en, ja), 스크린샷
+  marketplace.json   이 레포를 마켓플레이스로 등록
+plugins/turn-duration/
+  .claude-plugin/
+    plugin.json      플러그인 매니페스트
+  hooks/
+    hooks.json       hooks 모듈 목록
+    register.tsx     turn.complete / ui.render 훅
+    format.ts        단어, 시간, 시각 포맷
+  types/index.d.ts   $.state 타입 계약
+  tests/             claude plugin test 용 테스트
+docs/                README 번역본(en, ja), 스크린샷,
+                     GitHub Pages 사이트
 ```
+
+플러그인은 `plugins/turn-duration/`에 따로 두고 마켓플레이스가 상대경로로 가리킵니다. claude.ai의 Add marketplace는 레포 루트를 통째로 플러그인으로 쓰는 구성을 받아주지 않는 경우가 있어서입니다.
 
 ## 개발
 
 ```sh
-claude plugin validate .
-claude plugin test .
+claude plugin validate .                     # 마켓플레이스
+claude plugin validate plugins/turn-duration  # 플러그인
+claude plugin test plugins/turn-duration
 ```
 
-새 버전은 `.claude-plugin/plugin.json`의 `version`을 올리는 PR을 병합한 뒤, 같은 버전으로 `vX.Y.Z` Release를 만듭니다. 태그가 생기면 CI가 태그와 `version`이 같은지 확인합니다.
+새 버전은 `plugins/turn-duration/.claude-plugin/plugin.json`의 `version`을 올리는 PR을 병합한 뒤, 같은 버전으로 `vX.Y.Z` Release를 만듭니다. 태그가 생기면 CI가 태그와 `version`이 같은지 확인합니다.
 
 ## License
 

@@ -10,6 +10,10 @@ All notable changes to this project are recorded here. The format follows [Keep 
 - Badges and links to the website, releases and changelog in the READMEs
 - Daily CI run against the latest Claude Code, and Dependabot updates for GitHub Actions
 
+### Changed
+
+- The plugin moved to `plugins/turn-duration/`, and the marketplace lists it as `./plugins/turn-duration`, so claude.ai's Add marketplace can sync the repository
+
 ## [0.1.0] - 2026-10-29
 
 ### Added
