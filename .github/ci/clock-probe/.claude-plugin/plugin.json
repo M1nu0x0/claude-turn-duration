@@ -1,0 +1,5 @@
+{
+  "name": "clock-probe",
+  "version": "0.0.0",
+  "description": "CI only: records what turn-duration's readClockPrefs reads at session.start inside the real engine"
+}
