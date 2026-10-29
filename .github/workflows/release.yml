@@ -12,7 +12,7 @@ jobs:
     name: tag matches plugin.json
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Compare the tag with plugin.json's version
         run: |
