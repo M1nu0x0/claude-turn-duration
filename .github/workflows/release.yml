@@ -1,0 +1,25 @@
+name: Release check
+
+on:
+  push:
+    tags: ["v[0-9]*"]
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    name: tag matches plugin.json
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Compare the tag with plugin.json's version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version=$(jq -r .version .claude-plugin/plugin.json)
+          if [ "$tag" != "$version" ]; then
+            echo "::error title=version mismatch::tag $GITHUB_REF_NAME, but .claude-plugin/plugin.json says $version"
+            exit 1
+          fi
+          echo "::notice title=version matches::tag $GITHUB_REF_NAME = .claude-plugin/plugin.json $version"

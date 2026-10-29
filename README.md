@@ -63,6 +63,8 @@ claude plugin validate .
 claude plugin test .
 ```
 
+새 버전은 `.claude-plugin/plugin.json`의 `version`을 올리는 PR을 병합한 뒤, 같은 버전으로 `vX.Y.Z` Release를 만듭니다. 태그가 생기면 CI가 태그와 `version`이 같은지 확인합니다.
+
 ## License
 
 MIT

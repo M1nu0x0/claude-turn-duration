@@ -63,6 +63,8 @@ claude plugin validate .
 claude plugin test .
 ```
 
+新しいバージョンは、`.claude-plugin/plugin.json` の `version` を上げる PR をマージしてから、同じバージョンで `vX.Y.Z` の Release を作成します。タグが作成されると、CI がタグと `version` が一致するかを確認します。
+
 ## License
 
 MIT
