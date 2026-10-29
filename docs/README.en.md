@@ -63,6 +63,8 @@ claude plugin validate .
 claude plugin test .
 ```
 
+For a new version, merge a PR that bumps `version` in `.claude-plugin/plugin.json`, then create a `vX.Y.Z` Release with the same version. When the tag is created, CI checks that the tag and `version` match.
+
 ## License
 
 MIT
