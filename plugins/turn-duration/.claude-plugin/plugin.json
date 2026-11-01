@@ -1,14 +1,14 @@
 {
   "name": "turn-duration",
   "version": "0.1.1",
-  "description": "The terminal's turn-end line (Crunched for 4s · done 13:15) beneath each answer on surfaces that do not draw it",
+  "description": "Shows how long each answer took and when it finished (✻ Crunched for 4s · done 13:15) beneath answers in Claude Desktop and other surfaces that do not draw the terminal's turn-duration line",
   "author": {
     "name": "M1nu0x0",
     "url": "https://github.com/M1nu0x0"
   },
-  "homepage": "https://github.com/M1nu0x0/claude-turn-duration",
+  "homepage": "https://m1nu0x0.github.io/claude-turn-duration/",
   "repository": "https://github.com/M1nu0x0/claude-turn-duration",
   "license": "MIT",
-  "keywords": ["claude-desktop", "mod", "turn-duration", "ui"],
+  "keywords": ["claude-code", "claude-desktop", "plugin", "mod", "turn-duration", "response-time", "ui"],
   "types": "./types/index.d.ts"
 }

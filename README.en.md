@@ -2,19 +2,19 @@
 
 [![release](https://img.shields.io/github/v/release/M1nu0x0/claude-turn-duration)](https://github.com/M1nu0x0/claude-turn-duration/releases)
 [![CI](https://github.com/M1nu0x0/claude-turn-duration/actions/workflows/ci.yml/badge.svg)](https://github.com/M1nu0x0/claude-turn-duration/actions/workflows/ci.yml)
-[![license](https://img.shields.io/github/license/M1nu0x0/claude-turn-duration)](../LICENSE)
+[![license](https://img.shields.io/github/license/M1nu0x0/claude-turn-duration)](LICENSE)
 
-[한국어](../README.md) | **English** | [日本語](README.ja.md)
+[한국어](README.md) | **English** | [日本語](README.ja.md)
 
 A Claude Code mod that draws the terminal's `✻ Churned for 5s · done 14:48` line beneath answers in Claude Desktop too.
 
 The Claude Code terminal shows one line at the end of each answer with how long the turn took and when it finished, but Claude Desktop does not show this line. So I implemented it as a Claude Code mod (a hooks module) that draws the same line itself.
 
-**[Website](https://m1nu0x0.github.io/claude-turn-duration/) · [Releases](https://github.com/M1nu0x0/claude-turn-duration/releases) · [Changelog](../CHANGELOG.md)**
+**[Website](https://m1nu0x0.github.io/claude-turn-duration/) · [Releases](https://github.com/M1nu0x0/claude-turn-duration/releases) · [Changelog](CHANGELOG.md)**
 
 | Claude Desktop (this mod) | Terminal (Claude Code built-in) |
 | --- | --- |
-| ![Claude Desktop](images/desktop.png) | ![Terminal](images/terminal.png) |
+| ![Claude Desktop with the line Churned for 5s · done 14:48 in dim italics beneath an answer](docs/images/desktop.png) | ![Claude Code terminal with the line Crunched for 4s · done 1:15 PM beneath an answer](docs/images/terminal.png) |
 
 ## Install
 
@@ -61,8 +61,9 @@ plugins/turn-duration/
     format.ts        word, duration and clock formatting
   types/index.d.ts   $.state type contract
   tests/             tests for claude plugin test
-docs/                README translations (en, ja), screenshots,
-                     GitHub Pages site
+site/                site source (page template, translations, script) and its builder
+docs/                screenshots, GitHub Pages site built from site/
+README.en.md, README.ja.md  README translations
 ```
 
 The plugin lives in its own folder, `plugins/turn-duration/`, and the marketplace points at it with a relative path, because claude.ai's Add marketplace can reject a repository whose root is itself the plugin.
@@ -73,7 +74,11 @@ The plugin lives in its own folder, `plugins/turn-duration/`, and the marketplac
 claude plugin validate .                     # marketplace
 claude plugin validate plugins/turn-duration  # plugin
 claude plugin test plugins/turn-duration
+node site/build.mjs                           # builds the site in docs/ from site/
+node site/og.mjs                              # draws the link-preview image for each language (needs Playwright)
 ```
+
+For the site, edit `site/`, run `node site/build.mjs` to build the per-language pages (`/`, `/ko/`, `/ja/`) and `sitemap.xml` in `docs/`, and commit both. CI fails if the HTML in `docs/` is edited by hand. Rebuild after a version bump too, since the page's JSON-LD carries the plugin version. When the content changes, also set `updated` in `site/i18n.json` to that day; CI warns on a pull request that changes the content without it. After changing `ask`, `answer`, `ogImageLine` or `ogImageText` in `site/i18n.json`, run `node site/og.mjs` and commit `docs/images/og*.png` as well.
 
 For a new version, merge a PR that bumps `version` in `plugins/turn-duration/.claude-plugin/plugin.json`, then create a `vX.Y.Z` Release with the same version. When the tag is created, CI checks that the tag and `version` match.
 

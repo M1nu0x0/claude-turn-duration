@@ -48,6 +48,22 @@ jobs:
       - name: Unit tests
         run: claude plugin test plugins/turn-duration
 
+      - name: The site in docs/ is built from site/
+        if: runner.os == 'Linux'
+        run: |
+          node site/build.mjs
+          if [ -n "$(git status --porcelain -- docs)" ]; then
+            git status --short -- docs
+            echo "::error title=site out of date::docs/ does not match site/. Run node site/build.mjs and commit the result."
+            exit 1
+          fi
+
+      - name: The sitemap's lastmod moves with the site's text
+        if: runner.os == 'Linux' && github.event_name == 'pull_request'
+        run: |
+          git fetch -q --depth=1 origin "$GITHUB_BASE_REF"
+          node .github/ci/site-updated.mjs FETCH_HEAD
+
       - name: OS clock settings
         env:
           GSETTINGS_BACKEND: keyfile

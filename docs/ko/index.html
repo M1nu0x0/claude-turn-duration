@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script data-pages="{&quot;en&quot;:&quot;../&quot;,&quot;ko&quot;:&quot;./&quot;,&quot;ja&quot;:&quot;../ja/&quot;}">
+(() => {
+  // Runs in <head>, before the page is drawn, so a redirect never shows one page and then another.
+  // ?lang= (links to the old single page) goes to that language's page. / goes to the language the
+  // visitor chose on this site before, unless they came from another page of this site, which is
+  // someone choosing English (also in a new tab, where the link's click handler does not run). A
+  // language page opened directly stays as it is, and nothing is guessed from the browser language:
+  // runtime.js offers that language at the bottom of the page instead.
+  const pages = JSON.parse(document.currentScript.dataset.pages);
+  for (const l in pages) pages[l] = new URL(pages[l], location.href).href;
+  const known = l => Object.hasOwn(pages, l);
+  const here = document.documentElement.lang;
+  let want = new URLSearchParams(location.search).get('lang');
+  if (!(want && known(want)) && here === 'en') {
+    let fromSite = false, saved = null;
+    try { fromSite = new URL(document.referrer).href.startsWith(pages.en); } catch {}
+    try { saved = localStorage.getItem('lang'); } catch {}
+    want = fromSite ? null : saved;
+  }
+  if (want && known(want) && want !== here) location.replace(pages[want] + location.hash);
+})();
+</script>
+<title>TurnDuration: Claude Desktop 답변 아래에 응답 시간 표시</title>
+<meta name="description" content="Claude Desktop 답변 아래에 응답 시간과 끝난 시각을 표시하는 Claude Code 플러그인입니다.">
+<link rel="canonical" href="https://m1nu0x0.github.io/claude-turn-duration/ko/">
+<link rel="alternate" hreflang="en" href="https://m1nu0x0.github.io/claude-turn-duration/">
+<link rel="alternate" hreflang="ko" href="https://m1nu0x0.github.io/claude-turn-duration/ko/">
+<link rel="alternate" hreflang="ja" href="https://m1nu0x0.github.io/claude-turn-duration/ja/">
+<link rel="alternate" hreflang="x-default" href="https://m1nu0x0.github.io/claude-turn-duration/">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C1C1C" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="claude-turn-duration">
+<meta property="og:title" content="TurnDuration for Claude">
+<meta property="og:description" content="Claude Desktop 답변 아래에 응답 시간, 즉 Claude가 답하는 데 걸린 시간과 끝난 시각을 표시합니다.">
+<meta property="og:url" content="https://m1nu0x0.github.io/claude-turn-duration/ko/">
+<meta property="og:image" content="https://m1nu0x0.github.io/claude-turn-duration/images/og-ko.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Claude Desktop 답변 아래에 Worked for 1s · done 오후 2:48 줄이 표시된 화면">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image:alt" content="Claude Desktop 답변 아래에 Worked for 1s · done 오후 2:48 줄이 표시된 화면">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "TurnDuration for Claude",
+  "alternateName": "claude-turn-duration",
+  "description": "Claude Desktop 답변 아래에 응답 시간과 끝난 시각을 표시하는 Claude Code 플러그인입니다.",
+  "url": "https://m1nu0x0.github.io/claude-turn-duration/ko/",
+  "image": "https://m1nu0x0.github.io/claude-turn-duration/images/og-ko.png",
+  "softwareVersion": "0.1.1",
+  "dateModified": "2026-11-01",
+  "codeRepository": "https://github.com/M1nu0x0/claude-turn-duration",
+  "programmingLanguage": "TypeScript",
+  "license": "https://opensource.org/licenses/MIT",
+  "author": { "@type": "Person", "name": "M1nu0x0", "url": "https://github.com/M1nu0x0" },
+  "inLanguage": "ko"
+}
+</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='25' font-size='26' text-anchor='middle' fill='%237A7A7A'%3E%E2%9C%BB%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Sans+KR:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FFFFFF;
+    --surface: #FAFAFA;
+    --ink: #202020;
+    --dim: #6F6F6F;
+    --rule: #E4E4E4;
+    --accent: #202020;
+    --code-bg: #F0F0F0;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1C1C1C;
+      --surface: #242424;
+      --ink: #ECECEC;
+      --dim: #9A9A9A;
+      --rule: #3A3A3A;
+      --accent: #ECECEC;
+      --code-bg: #2E2E2E;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #1C1C1C;
+    --surface: #242424;
+    --ink: #ECECEC;
+    --dim: #9A9A9A;
+    --rule: #3A3A3A;
+    --accent: #ECECEC;
+    --code-bg: #2E2E2E;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans KR", "IBM Plex Sans JP", system-ui, sans-serif;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+  html[lang="ja"] body { font-family: "IBM Plex Sans JP", "IBM Plex Sans KR", system-ui, sans-serif; }
+  a { color: var(--accent); text-underline-offset: 0.2em; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+  code, pre, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  code { font-size: 0.9em; background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  html[lang="ko"] body { word-break: keep-all; overflow-wrap: anywhere; }
+
+  .wrap { max-width: 44rem; margin: 0 auto; padding: 0 16px; }
+
+  /* Top bar */
+  .top {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 20px 0; flex-wrap: wrap;
+  }
+  .name { font-family: "IBM Plex Mono", monospace; font-weight: 500; font-size: 0.95rem; color: var(--ink); text-decoration: none; }
+  .controls { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .controls button, .controls a {
+    font: inherit; font-size: 0.875rem; color: var(--dim); background: none; border: 0;
+    padding: 6px 8px; border-radius: 6px; cursor: pointer; text-decoration: none;
+  }
+  .controls button:hover, .controls a:hover { color: var(--ink); }
+  .controls a[aria-current="page"] { color: var(--ink); font-weight: 600; }
+  .sep { width: 1px; height: 18px; background: var(--rule); margin: 0 6px; }
+
+  /* The offer of the visitor's browser language: fixed at the bottom, so it moves nothing on the page. */
+  .offer {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 10;
+    display: flex; align-items: center; gap: 12px; width: max-content; max-width: calc(100% - 32px);
+    background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 8px 8px 8px 16px; font-size: 0.9375rem; box-shadow: 0 4px 16px rgb(0 0 0 / 0.08);
+  }
+  .offer[hidden] { display: none; }
+  .offer button { font: inherit; color: var(--dim); background: none; border: 0; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
+  .offer button:hover { color: var(--ink); }
+
+  /* Hero: the line itself */
+  .hero { padding: 40px 0 40px; }
+  .chat {
+    display: flex; flex-direction: column; gap: 14px;
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 14px;
+    padding: 28px 28px 24px; font-size: clamp(1.05rem, 2.6vw, 1.35rem); line-height: 1.5;
+  }
+  .chat p { margin: 0; }
+  /* Claude Desktop's user bubble: a rounded rectangle, corner radius about 30% of its height, not a pill. */
+  .bubble { align-self: flex-end; background: var(--code-bg); padding: 0.5em 0.9em; border-radius: 0.7em; }
+  .answer { color: var(--ink); }
+  .line { font-style: italic; color: var(--dim); font-size: 0.86em; margin-top: -8px !important; }
+  .bubble { transition: opacity 0.18s ease, transform 0.18s ease; }
+  .chat.pre .bubble { opacity: 0; transform: translateY(10px); }
+  .chat.instant .bubble { transition: none; }
+  /* Typed text sits over an invisible copy of the full text, so nothing shifts while it types. */
+  .type { display: grid; }
+  .type > .ghost, .type > .typed { grid-area: 1 / 1; }
+  .type > .ghost { visibility: hidden; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  h1 { font-size: clamp(1.6rem, 4.2vw, 2.15rem); line-height: 1.3; font-weight: 600; margin: 48px 0 16px; letter-spacing: -0.01em; }
+  .subtitle { margin: -6px 0 14px; }
+  h2 { font-size: 1.3rem; line-height: 1.35; font-weight: 600; margin: 0 0 12px; }
+  section { padding: 36px 0; border-top: 1px solid var(--rule); }
+  p { margin: 0 0 14px; }
+
+  /* Install */
+  .cmd {
+    display: flex; align-items: stretch; gap: 0; margin: 8px 0 14px;
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden;
+  }
+  .cmd pre { margin: 0; padding: 14px 12px 14px 14px; overflow-x: auto; flex: 1; font-size: 0.76rem; line-height: 1.5; }
+  .cmd button {
+    font: inherit; font-size: 0.875rem; border: 0; border-left: 1px solid var(--rule);
+    background: transparent; color: var(--accent); padding: 0 12px; cursor: pointer; white-space: nowrap;
+  }
+  .cmd button:hover { background: var(--code-bg); }
+
+  /* Screens */
+  .screens { display: grid; grid-template-columns: 1.7fr 1fr; gap: 16px; margin-top: 18px; align-items: start; }
+  figure { margin: 0; }
+  figure img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 8px; background: #fff; }
+  figcaption { font-size: 0.875rem; color: var(--dim); margin-top: 8px; }
+
+  /* Clock table */
+  dl.os { display: grid; grid-template-columns: max-content 1fr; gap: 10px 20px; margin: 16px 0 0; }
+  dl.os dt { font-weight: 600; }
+  dl.os dd { margin: 0; color: var(--ink); }
+
+  /* FAQ */
+  details { border-bottom: 1px solid var(--rule); padding: 12px 0; }
+  details:first-of-type { border-top: 1px solid var(--rule); }
+  summary { cursor: pointer; font-weight: 600; list-style-position: inside; }
+  details p { margin: 10px 0 0; }
+
+  footer { padding: 32px 0 48px; border-top: 1px solid var(--rule); color: var(--dim); font-size: 0.875rem; }
+  footer nav { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 8px; }
+
+  @media (max-width: 560px) {
+    .screens { grid-template-columns: 1fr; }
+    .hero { padding: 36px 0 28px; }
+    .chat { padding: 20px 18px 18px; }
+    dl.os { grid-template-columns: 1fr; gap: 2px 0; }
+    dl.os dd { margin-bottom: 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bubble { transition: none; }
+  }
+</style>
+<noscript><style>.chat.pre .bubble { opacity: 1; transform: none; } .type > .ghost { visibility: visible; } .controls button, .controls .sep { display: none; }</style></noscript>
+</head>
+<body data-copied="복사했습니다" data-offers="{&quot;en&quot;:{&quot;text&quot;:&quot;This page is also in English.&quot;,&quot;go&quot;:&quot;Read it in English&quot;,&quot;close&quot;:&quot;Close&quot;,&quot;href&quot;:&quot;../&quot;},&quot;ja&quot;:{&quot;text&quot;:&quot;このページは日本語でも読めます。&quot;,&quot;go&quot;:&quot;日本語で読む&quot;,&quot;close&quot;:&quot;閉じる&quot;,&quot;href&quot;:&quot;../ja/&quot;}}">
+<div class="wrap">
+  <header class="top">
+    <a class="name" href="https://github.com/M1nu0x0/claude-turn-duration">claude-turn-duration</a>
+    <div class="controls">
+      <a data-lang-link="ko" href="./" aria-current="page" hreflang="ko" lang="ko">한국어</a>
+      <a data-lang-link="en" href="../" hreflang="en" lang="en">English</a>
+      <a data-lang-link="ja" href="../ja/" hreflang="ja" lang="ja">日本語</a>
+      <span class="sep" aria-hidden="true"></span>
+      <button type="button" id="theme" data-i18n-aria="theme" aria-label="라이트/다크 전환"></button>
+      <a href="https://github.com/M1nu0x0/claude-turn-duration">GitHub</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div class="chat pre" id="chat">
+        <p class="bubble" id="ask">안녕?</p>
+        <p class="answer type" id="answer"><span class="sr">안녕하세요. 무엇을 도와드릴까요?</span><span class="ghost" aria-hidden="true">안녕하세요. 무엇을 도와드릴까요?</span><span class="typed" aria-hidden="true"></span></p>
+        <p class="line type" id="line"><span class="sr">✻ Worked for 1s · done 오후 2:48</span><span class="ghost" aria-hidden="true">✻ Worked for 1s · done 오후 2:48</span><span class="typed" aria-hidden="true"></span></p>
+      </div>
+      <h1>TurnDuration for Claude</h1>
+      <p class="subtitle" data-i18n="subtitle">Claude Desktop 답변 아래에 응답 시간, 즉 Claude가 답하는 데 걸린 시간과 끝난 시각을 표시합니다.</p>
+      <p data-i18n="lead">Claude Code CLI에는 기본으로 있는 줄이지만 Claude Desktop에는 없어서, 이 플러그인이 Claude Code mod로 같은 줄을 그립니다.</p>
+    </div>
+
+    <section aria-labelledby="install">
+      <h2 id="install" data-i18n="installTitle">설치</h2>
+      <p data-i18n="installTerminal">Claude Code 터미널 프롬프트에서:</p>
+      <div class="cmd">
+        <pre tabindex="0"><code>/plugin install turn-duration --marketplace M1nu0x0/claude-turn-duration</code></pre>
+        <button type="button" class="copy" data-i18n="copy">복사</button>
+      </div>
+      <p data-i18n="installNote"><code>Add marketplace?</code>에 <code>y</code>를 누르고 scope는 user를 고릅니다.</p>
+      <p data-i18n="installShell">셸에서는:</p>
+      <div class="cmd">
+        <pre tabindex="0"><code>claude plugin install turn-duration --marketplace M1nu0x0/claude-turn-duration</code></pre>
+        <button type="button" class="copy" data-i18n="copy">복사</button>
+      </div>
+      <p data-i18n="installDesktop">Claude Desktop에서는 프롬프트 옆 <code>+</code> → Plugins → Add marketplace에 <code>M1nu0x0/claude-turn-duration</code>을 넣고 <code>turn-duration</code>을 추가합니다.</p>
+    </section>
+
+    <section aria-labelledby="screens">
+      <h2 id="screens" data-i18n="screensTitle">화면</h2>
+      <div class="screens">
+        <figure>
+          <img src="images/desktop.png" width="771" height="169" loading="lazy" data-i18n-alt="desktopAlt" alt="Claude Desktop에서 답변 아래에 Churned for 5s · done 14:48 줄이 흐린 기울임꼴로 표시된 화면">
+          <figcaption data-i18n="desktopCap">Claude Desktop, 이 mod가 그린 줄</figcaption>
+        </figure>
+        <figure>
+          <img src="images/terminal.png" width="303" height="113" loading="lazy" data-i18n-alt="terminalAlt" alt="Claude Code 터미널에서 답변 아래에 Crunched for 4s · done 1:15 PM 줄이 표시된 화면">
+          <figcaption data-i18n="terminalCap">터미널, Claude Code가 원래 그리는 줄</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section aria-labelledby="how">
+      <h2 id="how" data-i18n="howTitle">동작</h2>
+      <p data-i18n="how1">메인 턴이 끝나면 <code>✻ 단어 for 시간 · done 시각</code> 줄을 출력합니다. 서브에이전트 턴과 빈 답변에는 출력하지 않습니다.</p>
+    </section>
+
+    <section aria-labelledby="clock-h">
+      <h2 id="clock-h" data-i18n="clockTitle">시각 형식</h2>
+      <p data-i18n="clockLead">세션이 시작될 때 OS의 12/24시간 설정과 로케일을 읽어 시각 형식을 맞춥니다.</p>
+      <dl class="os">
+        <dt>macOS</dt><dd data-i18n="clockMac"><code>defaults read -g</code>의 <code>AppleICUForce24HourTime</code>, <code>AppleICUForce12HourTime</code>, <code>AppleLocale</code></dd>
+        <dt>Windows</dt><dd data-i18n="clockWin"><code>HKCU\Control Panel\International</code>의 <code>sShortTime</code>, <code>LocaleName</code></dd>
+        <dt>Linux</dt><dd data-i18n="clockLinux">로케일은 <code>LC_ALL</code>, <code>LC_TIME</code>, <code>LANG</code> 순서로, 12/24시간은 GNOME 데스크톱에서 <code>clock-format</code>을 읽습니다.</dd>
+      </dl>
+    </section>
+
+    <section aria-labelledby="faq">
+      <h2 id="faq" data-i18n="faqTitle">자주 묻는 질문</h2>
+      <details><summary data-i18n="q1">터미널에서 줄이 두 번 보이지 않나요?</summary><p data-i18n="a1">터미널에 보이는 <code>✻ … for Ns</code> 줄은 이 mod가 아니라 Claude Code가 원래 그리는 TurnDuration 줄입니다. mod는 터미널에서는 줄을 더하지 않도록 코드에서 막혀 있어서 두 번 보이지 않습니다.</p></details>
+      <details><summary data-i18n="q2">어디에서 보이나요?</summary><p data-i18n="a2">터미널이 아닌 화면(Claude Desktop 등)에서 답변 아래에 그립니다. 요약 블록에는 붙이지 않습니다.</p></details>
+      <details><summary data-i18n="q3">어디로 데이터를 보내나요?</summary><p data-i18n="a3">보내지 않습니다. 세션이 시작될 때 OS의 시계 설정을 읽는 명령(<code>defaults</code>, <code>reg</code>, <code>gsettings</code>)만 내 컴퓨터에서 실행합니다.</p></details>
+      <details><summary data-i18n="q4">어떤 OS에서 확인했나요?</summary><p data-i18n="a4">Ubuntu, Windows, macOS에서 CI가 돕니다.</p></details>
+      <details><summary data-i18n="q5">제거하려면 어떻게 하나요?</summary><p data-i18n="a5">셸에서 <code>claude plugin uninstall turn-duration</code>을 실행합니다.</p></details>
+      <details><summary data-i18n="q6">Claude Desktop에서 Claude가 답하는 데 걸린 시간을 보려면 어떻게 하나요?</summary><p data-i18n="a6">Claude Desktop은 따로 보여 주지 않습니다. 이 플러그인을 설치하면 Claude Code CLI처럼 답변마다 아래에 <code>✻ Worked for 4s · done 13:15</code> 같은 줄이 붙어, 걸린 시간과 끝난 시각을 보여 줍니다.</p></details>
+      <details><summary data-i18n="q7">Churned, Crunched, Brewed 같은 단어는 뭔가요?</summary><p data-i18n="a7">터미널은 답변마다 단어를 하나 고르는데, mod는 터미널이 고른 단어를 받을 수 없어서 이 플러그인은 자체 목록에서 무작위로 고릅니다. 시간과 시각은 실제 값입니다.</p></details>
+    </section>
+  </main>
+
+  <footer>
+    <nav>
+      <a href="https://github.com/M1nu0x0/claude-turn-duration" data-i18n="repo">저장소</a>
+      <a href="https://github.com/M1nu0x0/claude-turn-duration/releases" data-i18n="releases">릴리스</a>
+      <a href="https://github.com/M1nu0x0/claude-turn-duration/blob/main/CHANGELOG.md" data-i18n="changelog">변경 기록</a>
+    </nav>
+    <p data-i18n="foot">MIT License. Anthropic과 관련 없는 비공식 mod입니다.</p>
+  </footer>
+  <p class="offer" id="offer" role="status" hidden><span></span><a></a><button type="button"></button></p>
+</div>
+
+<script>
+(() => {
+  // Each language has its own pre-rendered page (/, /ko/, /ja/), so search engines and link previews
+  // read the page in its own language without running this script. The script only adds behaviour.
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  };
+  const root = document.documentElement;
+  const here = root.lang;
+
+  // Language: the redirect, if any, already ran in <head> (site/redirect.js). Choosing a language on
+  // the page saves it, and / goes there from then on.
+  document.querySelectorAll('[data-lang-link]').forEach(a => a.addEventListener('click', () => {
+    store.set('lang', a.dataset.langLink);
+  }));
+
+  // When the browser's preferred language has its own page and the visitor has not chosen one, offer
+  // it in that language at the bottom of the page, instead of redirecting on a guess.
+  const offerLanguage = () => {
+    if (store.get('lang') || store.get('offerClosed')) return;
+    const offers = JSON.parse(document.body.dataset.offers);
+    const nav = (navigator.languages || [navigator.language || '']).map(l => l.slice(0, 2));
+    const l = nav.find(l => l === here || Object.hasOwn(offers, l));
+    if (!l || l === here) return;
+    const o = offers[l];
+    const box = document.getElementById('offer');
+    const [text, link, close] = box.children;
+    box.lang = l;
+    text.textContent = o.text;
+    link.textContent = o.go;
+    link.href = o.href;
+    link.addEventListener('click', () => store.set('lang', l));
+    close.textContent = o.close;
+    close.addEventListener('click', () => { box.hidden = true; store.set('offerClosed', '1'); });
+    box.hidden = false;
+  };
+
+  // Theme: system unless chosen.
+  const themeBtn = document.getElementById('theme');
+  const isDark = () => root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  const drawTheme = () => { themeBtn.textContent = isDark() ? '☾' : '☀'; };
+  const savedTheme = store.get('theme');
+  if (savedTheme === 'light' || savedTheme === 'dark') root.dataset.theme = savedTheme;
+  themeBtn.addEventListener('click', () => {
+    root.dataset.theme = isDark() ? 'light' : 'dark';
+    store.set('theme', root.dataset.theme);
+    drawTheme();
+  });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawTheme);
+
+  // Copy: each button copies the command beside it.
+  document.querySelectorAll('.copy').forEach(btn => {
+    const label = btn.textContent;
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.parentElement.querySelector('code').textContent);
+        btn.textContent = document.body.dataset.copied;
+        setTimeout(() => { btn.textContent = label; }, 1600);
+      } catch {}
+    });
+  });
+
+  // The hero: the question goes up, the answer types out, then the turn-duration line types out much faster.
+  // The page is drawn with the time 2:48 PM; here the line gets the visitor's clock, in the page's language.
+  // site/build.mjs works out the same seconds for the drawn page, so keep the timings there in step.
+  const LOCALES = { ko: 'ko-KR', en: 'en-US', ja: 'ja-JP' };
+  const BUBBLE_AT = 100, ANSWER_AT = 450, ANSWER_MS = 22.5 / 0.7, LINE_GAP = 150, LINE_MS = 0.9375;
+  const chat = document.getElementById('chat');
+  const answer = document.getElementById('answer');
+  const line = document.getElementById('line');
+  const answerText = answer.querySelector('.sr').textContent;
+  let timers = [];
+
+  const lineText = () => {
+    // The turn runs from the question going up to the answer's last character.
+    const secs = Math.max(1, Math.round((ANSWER_AT - BUBBLE_AT + Array.from(answerText).length * ANSWER_MS) / 1000));
+    const clock = new Intl.DateTimeFormat(LOCALES[here], { hour: 'numeric', minute: '2-digit' }).format(new Date());
+    return `✻ Worked for ${secs}s · done ${clock}`;
+  };
+  const fill = (p, text, shown) => {
+    p.querySelector('.sr').textContent = text;
+    p.querySelector('.ghost').textContent = text;
+    p.querySelector('.typed').textContent = shown;
+  };
+  const typeOut = (p, text, at, ms) => {
+    const chars = Array.from(text);
+    chars.forEach((_, i) => timers.push(setTimeout(() => {
+      p.querySelector('.typed').textContent = chars.slice(0, i + 1).join('');
+    }, at + i * ms)));
+    return at + chars.length * ms;
+  };
+  const heroFinal = () => {
+    chat.classList.remove('pre');
+    fill(answer, answerText, answerText);
+    const l = lineText();
+    fill(line, l, l);
+  };
+  const heroPlay = () => {
+    // Hide the bubble at once (no fall), so it only shows rising.
+    chat.classList.add('instant', 'pre');
+    void chat.offsetWidth;
+    chat.classList.remove('instant');
+    const l = lineText();
+    fill(answer, answerText, '');
+    fill(line, l, '');
+    timers.push(setTimeout(() => chat.classList.remove('pre'), BUBBLE_AT));
+    const answered = typeOut(answer, answerText, ANSWER_AT, ANSWER_MS);
+    typeOut(line, l, answered + LINE_GAP, LINE_MS);
+  };
+
+  drawTheme();
+  offerLanguage();
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) heroFinal(); else heroPlay();
+})();
+</script>
+</body>
+</html>
