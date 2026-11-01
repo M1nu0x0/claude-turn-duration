@@ -3,19 +3,41 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TurnDuration for Claude: turn time in Claude Desktop</title>
-<meta name="description" content="A Claude Code mod that shows how long each answer took and when it finished, beneath the answer in Claude Desktop, like the Claude Code CLI does.">
+<script data-pages="{&quot;en&quot;:&quot;./&quot;,&quot;ko&quot;:&quot;./ko/&quot;,&quot;ja&quot;:&quot;./ja/&quot;}">
+(() => {
+  // Runs in <head>, before the page is drawn, so a redirect never shows one page and then another.
+  // ?lang= (links to the old single page) goes to that language's page. / goes to the language the
+  // visitor chose on this site before, unless they came from another page of this site, which is
+  // someone choosing English (also in a new tab, where the link's click handler does not run). A
+  // language page opened directly stays as it is, and nothing is guessed from the browser language:
+  // runtime.js offers that language at the bottom of the page instead.
+  const pages = JSON.parse(document.currentScript.dataset.pages);
+  for (const l in pages) pages[l] = new URL(pages[l], location.href).href;
+  const known = l => Object.hasOwn(pages, l);
+  const here = document.documentElement.lang;
+  let want = new URLSearchParams(location.search).get('lang');
+  if (!(want && known(want)) && here === 'en') {
+    let fromSite = false, saved = null;
+    try { fromSite = new URL(document.referrer).href.startsWith(pages.en); } catch {}
+    try { saved = localStorage.getItem('lang'); } catch {}
+    want = fromSite ? null : saved;
+  }
+  if (want && known(want) && want !== here) location.replace(pages[want] + location.hash);
+})();
+</script>
+<title>TurnDuration: response time under each Claude Desktop answer</title>
+<meta name="description" content="A Claude Code plugin that shows how long each answer took and when it finished, under the answer in Claude Desktop, like the CLI's ✻ Worked for 4s line.">
 <link rel="canonical" href="https://m1nu0x0.github.io/claude-turn-duration/">
 <link rel="alternate" hreflang="en" href="https://m1nu0x0.github.io/claude-turn-duration/">
-<link rel="alternate" hreflang="ko" href="https://m1nu0x0.github.io/claude-turn-duration/?lang=ko">
-<link rel="alternate" hreflang="ja" href="https://m1nu0x0.github.io/claude-turn-duration/?lang=ja">
+<link rel="alternate" hreflang="ko" href="https://m1nu0x0.github.io/claude-turn-duration/ko/">
+<link rel="alternate" hreflang="ja" href="https://m1nu0x0.github.io/claude-turn-duration/ja/">
 <link rel="alternate" hreflang="x-default" href="https://m1nu0x0.github.io/claude-turn-duration/">
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1C1C1C" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="claude-turn-duration">
 <meta property="og:title" content="TurnDuration for Claude">
-<meta property="og:description" content="Shows how long each answer took, under the answer, in Claude Desktop.">
+<meta property="og:description" content="Shows the response time under each answer in Claude Desktop: how long Claude took and when it finished.">
 <meta property="og:url" content="https://m1nu0x0.github.io/claude-turn-duration/">
 <meta property="og:image" content="https://m1nu0x0.github.io/claude-turn-duration/images/og.png">
 <meta property="og:image:width" content="1200">
@@ -25,25 +47,29 @@
 <meta property="og:locale:alternate" content="ko_KR">
 <meta property="og:locale:alternate" content="ja_JP">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image:alt" content="A Claude Desktop answer with the line Worked for 1s, done 2:48 PM beneath it">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "SoftwareSourceCode",
   "name": "TurnDuration for Claude",
   "alternateName": "claude-turn-duration",
-  "description": "A Claude Code mod that shows how long each answer took and when it finished, beneath the answer in Claude Desktop.",
+  "description": "A Claude Code plugin that shows how long each answer took and when it finished, under the answer in Claude Desktop, like the CLI's ✻ Worked for 4s line.",
   "url": "https://m1nu0x0.github.io/claude-turn-duration/",
+  "image": "https://m1nu0x0.github.io/claude-turn-duration/images/og.png",
+  "softwareVersion": "0.1.1",
+  "dateModified": "2026-11-01",
   "codeRepository": "https://github.com/M1nu0x0/claude-turn-duration",
   "programmingLanguage": "TypeScript",
   "license": "https://opensource.org/licenses/MIT",
   "author": { "@type": "Person", "name": "M1nu0x0", "url": "https://github.com/M1nu0x0" },
-  "inLanguage": ["en", "ko", "ja"]
+  "inLanguage": "en"
 }
 </script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='25' font-size='26' text-anchor='middle' fill='%237A7A7A'%3E%E2%9C%BB%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Sans+JP:wght@400;600&family=IBM+Plex+Sans+KR:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Sans+KR:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --paper: #FFFFFF;
@@ -110,8 +136,19 @@
     padding: 6px 8px; border-radius: 6px; cursor: pointer; text-decoration: none;
   }
   .controls button:hover, .controls a:hover { color: var(--ink); }
-  .controls button[aria-pressed="true"] { color: var(--ink); font-weight: 600; }
+  .controls a[aria-current="page"] { color: var(--ink); font-weight: 600; }
   .sep { width: 1px; height: 18px; background: var(--rule); margin: 0 6px; }
+
+  /* The offer of the visitor's browser language: fixed at the bottom, so it moves nothing on the page. */
+  .offer {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 10;
+    display: flex; align-items: center; gap: 12px; width: max-content; max-width: calc(100% - 32px);
+    background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 8px 8px 8px 16px; font-size: 0.9375rem; box-shadow: 0 4px 16px rgb(0 0 0 / 0.08);
+  }
+  .offer[hidden] { display: none; }
+  .offer button { font: inherit; color: var(--dim); background: none; border: 0; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
+  .offer button:hover { color: var(--ink); }
 
   /* Hero: the line itself */
   .hero { padding: 40px 0 40px; }
@@ -185,14 +222,14 @@
 </style>
 <noscript><style>.chat.pre .bubble { opacity: 1; transform: none; } .type > .ghost { visibility: visible; } .controls button, .controls .sep { display: none; }</style></noscript>
 </head>
-<body>
+<body data-copied="Copied" data-offers="{&quot;ko&quot;:{&quot;text&quot;:&quot;이 페이지는 한국어로도 볼 수 있습니다.&quot;,&quot;go&quot;:&quot;한국어로 보기&quot;,&quot;close&quot;:&quot;닫기&quot;,&quot;href&quot;:&quot;./ko/&quot;},&quot;ja&quot;:{&quot;text&quot;:&quot;このページは日本語でも読めます。&quot;,&quot;go&quot;:&quot;日本語で読む&quot;,&quot;close&quot;:&quot;閉じる&quot;,&quot;href&quot;:&quot;./ja/&quot;}}">
 <div class="wrap">
   <header class="top">
     <a class="name" href="https://github.com/M1nu0x0/claude-turn-duration">claude-turn-duration</a>
     <div class="controls">
-      <button type="button" data-lang-btn="ko" lang="ko">한국어</button>
-      <button type="button" data-lang-btn="en" lang="en" aria-pressed="true">English</button>
-      <button type="button" data-lang-btn="ja" lang="ja">日本語</button>
+      <a data-lang-link="ko" href="./ko/" hreflang="ko" lang="ko">한국어</a>
+      <a data-lang-link="en" href="./" aria-current="page" hreflang="en" lang="en">English</a>
+      <a data-lang-link="ja" href="./ja/" hreflang="ja" lang="ja">日本語</a>
       <span class="sep" aria-hidden="true"></span>
       <button type="button" id="theme" data-i18n-aria="theme" aria-label="Toggle light/dark"></button>
       <a href="https://github.com/M1nu0x0/claude-turn-duration">GitHub</a>
@@ -207,8 +244,8 @@
         <p class="line type" id="line"><span class="sr">✻ Worked for 1s · done 2:48 PM</span><span class="ghost" aria-hidden="true">✻ Worked for 1s · done 2:48 PM</span><span class="typed" aria-hidden="true"></span></p>
       </div>
       <h1>TurnDuration for Claude</h1>
-      <p class="subtitle" data-i18n="subtitle">Shows how long each answer took, under the answer, in Claude Desktop</p>
-      <p data-i18n="lead">The Claude Code CLI has this line built in; Claude Desktop does not, so this mod draws it.</p>
+      <p class="subtitle" data-i18n="subtitle">Shows the response time under each answer in Claude Desktop: how long Claude took and when it finished.</p>
+      <p data-i18n="lead">The Claude Code CLI has this line built in; Claude Desktop does not, so this plugin draws it as a Claude Code mod.</p>
     </div>
 
     <section aria-labelledby="install">
@@ -263,6 +300,8 @@
       <details><summary data-i18n="q3">Does it send data anywhere?</summary><p data-i18n="a3">No. At session start it only runs the commands that read the OS clock settings (<code>defaults</code>, <code>reg</code>, <code>gsettings</code>) on your own computer.</p></details>
       <details><summary data-i18n="q4">Which systems is it tested on?</summary><p data-i18n="a4">CI runs on Ubuntu, Windows and macOS.</p></details>
       <details><summary data-i18n="q5">How do I remove it?</summary><p data-i18n="a5">Run <code>claude plugin uninstall turn-duration</code> in a shell.</p></details>
+      <details><summary data-i18n="q6">How do I see how long Claude took to answer in Claude Desktop?</summary><p data-i18n="a6">Claude Desktop does not show it on its own. With this plugin installed, every answer gets a line such as <code>✻ Worked for 4s · done 1:15 PM</code> beneath it, as the Claude Code CLI shows: the time the answer took and the time it finished.</p></details>
+      <details><summary data-i18n="q7">Why does it say Churned, Crunched or Brewed?</summary><p data-i18n="a7">The terminal picks a word for each answer, and a mod cannot read which one it picked, so this plugin picks one at random from its own list. The time and the clock are real.</p></details>
     </section>
   </main>
 
@@ -274,178 +313,46 @@
     </nav>
     <p data-i18n="foot">MIT License. An unofficial mod, not affiliated with Anthropic.</p>
   </footer>
+  <p class="offer" id="offer" role="status" hidden><span></span><a></a><button type="button"></button></p>
 </div>
 
 <script>
 (() => {
-  const T = {
-    ko: {
-      htmlTitle: 'TurnDuration for Claude: Claude Desktop 답변 시간 표시',
-      desc: 'Claude Code CLI처럼 Claude Desktop 답변 아래에도 걸린 시간과 끝난 시각을 표시하는 Claude Code mod입니다.',
-      theme: '라이트/다크 전환',
-      ask: '안녕?',
-      answer: '안녕하세요. 무엇을 도와드릴까요?',
-      subtitle: 'Claude Desktop 답변 아래에도 걸린 시간을 표시합니다',
-      lead: 'Claude Code CLI에는 기본으로 있는 기능이지만 Claude Desktop에는 없어서, 같은 줄을 직접 그립니다.',
-      installTitle: '설치',
-      installTerminal: 'Claude Code 터미널 프롬프트에서:',
-      installNote: '<code>Add marketplace?</code>에 <code>y</code>를 누르고 scope는 user를 고릅니다.',
-      installShell: '셸에서는:',
-      installDesktop: 'Claude Desktop에서는 프롬프트 옆 <code>+</code> → Plugins → Add marketplace에 <code>M1nu0x0/claude-turn-duration</code>을 넣고 <code>turn-duration</code>을 추가합니다.',
-      copy: '복사',
-      copied: '복사했습니다',
-      screensTitle: '화면',
-      desktopAlt: 'Claude Desktop에서 답변 아래에 Churned for 5s · done 14:48 줄이 흐린 기울임꼴로 표시된 화면',
-      desktopCap: 'Claude Desktop, 이 mod가 그린 줄',
-      terminalAlt: 'Claude Code 터미널에서 답변 아래에 Crunched for 4s · done 1:15 PM 줄이 표시된 화면',
-      terminalCap: '터미널, Claude Code가 원래 그리는 줄',
-      howTitle: '동작',
-      how1: '메인 턴이 끝나면 <code>✻ 단어 for 시간 · done 시각</code> 줄을 출력합니다. 서브에이전트 턴과 빈 답변에는 출력하지 않습니다.',
-      clockTitle: '시각 형식',
-      clockLead: '세션이 시작될 때 OS의 12/24시간 설정과 로케일을 읽어 시각 형식을 맞춥니다.',
-      clockMac: '<code>defaults read -g</code>의 <code>AppleICUForce24HourTime</code>, <code>AppleICUForce12HourTime</code>, <code>AppleLocale</code>',
-      clockWin: '<code>HKCU\\Control Panel\\International</code>의 <code>sShortTime</code>, <code>LocaleName</code>',
-      clockLinux: '로케일은 <code>LC_ALL</code>, <code>LC_TIME</code>, <code>LANG</code> 순서로, 12/24시간은 GNOME 데스크톱에서 <code>clock-format</code>을 읽습니다.',
-      faqTitle: '자주 묻는 질문',
-      q1: '터미널에서 줄이 두 번 보이지 않나요?',
-      a1: '터미널에 보이는 <code>✻ … for Ns</code> 줄은 이 mod가 아니라 Claude Code가 원래 그리는 TurnDuration 줄입니다. mod는 터미널에서는 줄을 더하지 않도록 코드에서 막혀 있어서 두 번 보이지 않습니다.',
-      q2: '어디에서 보이나요?',
-      a2: '터미널이 아닌 화면(Claude Desktop 등)에서 답변 아래에 그립니다. 요약 블록에는 붙이지 않습니다.',
-      q3: '어디로 데이터를 보내나요?',
-      a3: '보내지 않습니다. 세션이 시작될 때 OS의 시계 설정을 읽는 명령(<code>defaults</code>, <code>reg</code>, <code>gsettings</code>)만 내 컴퓨터에서 실행합니다.',
-      q4: '어떤 OS에서 확인했나요?',
-      a4: 'Ubuntu, Windows, macOS에서 CI가 돕니다.',
-      q5: '제거하려면 어떻게 하나요?',
-      a5: '셸에서 <code>claude plugin uninstall turn-duration</code>을 실행합니다.',
-      repo: '저장소',
-      releases: '릴리스',
-      changelog: '변경 기록',
-      foot: 'MIT License. Anthropic과 관련 없는 비공식 mod입니다.',
-    },
-    en: {
-      htmlTitle: 'TurnDuration for Claude: turn time in Claude Desktop',
-      desc: 'A Claude Code mod that shows how long each answer took and when it finished, beneath the answer in Claude Desktop, like the Claude Code CLI does.',
-      theme: 'Toggle light/dark',
-      ask: 'Hi',
-      answer: 'Hello. How can I help you today?',
-      subtitle: 'Shows how long each answer took, under the answer, in Claude Desktop',
-      lead: 'The Claude Code CLI has this line built in; Claude Desktop does not, so this mod draws it.',
-      installTitle: 'Install',
-      installTerminal: 'At the Claude Code terminal prompt:',
-      installNote: 'Answer <code>y</code> to <code>Add marketplace?</code> and choose the user scope.',
-      installShell: 'From a shell:',
-      installDesktop: 'In Claude Desktop, click <code>+</code> next to the prompt box → Plugins → Add marketplace, enter <code>M1nu0x0/claude-turn-duration</code>, then add <code>turn-duration</code>.',
-      copy: 'Copy',
-      copied: 'Copied',
-      screensTitle: 'Screens',
-      desktopAlt: 'Claude Desktop with the line Churned for 5s · done 14:48 in dim italics beneath an answer',
-      desktopCap: 'Claude Desktop, drawn by this mod',
-      terminalAlt: 'Claude Code terminal with the line Crunched for 4s · done 1:15 PM beneath an answer',
-      terminalCap: 'Terminal, drawn by Claude Code itself',
-      howTitle: 'How it works',
-      how1: 'When the main turn ends, it prints a <code>✻ word for duration · done time</code> line. Subagent turns and empty answers get no line.',
-      clockTitle: 'Clock format',
-      clockLead: "At session start it reads the OS's 12/24-hour setting and locale to format the time.",
-      clockMac: '<code>AppleICUForce24HourTime</code>, <code>AppleICUForce12HourTime</code> and <code>AppleLocale</code> from <code>defaults read -g</code>',
-      clockWin: '<code>sShortTime</code> and <code>LocaleName</code> under <code>HKCU\\Control Panel\\International</code>',
-      clockLinux: 'The locale from <code>LC_ALL</code>, <code>LC_TIME</code>, then <code>LANG</code>; 12/24-hour from <code>clock-format</code> on a GNOME desktop.',
-      faqTitle: 'Questions',
-      q1: 'Does the line show twice in the terminal?',
-      a1: 'The <code>✻ … for Ns</code> line in the terminal is not from this mod; it is the TurnDuration line Claude Code draws on its own. The mod is blocked in code from adding a line in the terminal, so it never shows twice.',
-      q2: 'Where does it show?',
-      a2: 'Beneath answers on surfaces other than the terminal, such as Claude Desktop. Summary blocks are left as they are.',
-      q3: 'Does it send data anywhere?',
-      a3: 'No. At session start it only runs the commands that read the OS clock settings (<code>defaults</code>, <code>reg</code>, <code>gsettings</code>) on your own computer.',
-      q4: 'Which systems is it tested on?',
-      a4: 'CI runs on Ubuntu, Windows and macOS.',
-      q5: 'How do I remove it?',
-      a5: 'Run <code>claude plugin uninstall turn-duration</code> in a shell.',
-      repo: 'Repository',
-      releases: 'Releases',
-      changelog: 'Changelog',
-      foot: 'MIT License. An unofficial mod, not affiliated with Anthropic.',
-    },
-    ja: {
-      htmlTitle: 'TurnDuration for Claude: Claude Desktop に回答時間を表示',
-      desc: 'Claude Code の CLI と同じように、Claude Desktop の回答の下にもかかった時間と終了時刻を表示する Claude Code の mod です。',
-      theme: 'ライト/ダーク切り替え',
-      ask: 'こんにちは',
-      answer: 'こんにちは。何をお手伝いしましょうか？',
-      subtitle: 'Claude Desktop の回答の下にも、かかった時間を表示します',
-      lead: 'Claude Code の CLI には標準で備わっている機能ですが、Claude Desktop にはないため、同じ行を描画します。',
-      installTitle: 'インストール',
-      installTerminal: 'Claude Code のターミナルのプロンプトで:',
-      installNote: '<code>Add marketplace?</code> に <code>y</code> と答え、scope は user を選びます。',
-      installShell: 'シェルからは:',
-      installDesktop: 'Claude Desktop では、プロンプト横の <code>+</code> → Plugins → Add marketplace に <code>M1nu0x0/claude-turn-duration</code> を入力し、<code>turn-duration</code> を追加します。',
-      copy: 'コピー',
-      copied: 'コピーしました',
-      screensTitle: '画面',
-      desktopAlt: 'Claude Desktop で回答の下に Churned for 5s · done 14:48 の行が薄いイタリック体で表示された画面',
-      desktopCap: 'Claude Desktop、この mod が描いた行',
-      terminalAlt: 'Claude Code のターミナルで回答の下に Crunched for 4s · done 1:15 PM の行が表示された画面',
-      terminalCap: 'ターミナル、Claude Code がもともと描く行',
-      howTitle: '動作',
-      how1: 'メインのターンが終わると <code>✻ 単語 for 時間 · done 時刻</code> の行を出力します。サブエージェントのターンと空の回答には出力しません。',
-      clockTitle: '時刻の形式',
-      clockLead: 'セッション開始時に OS の 12/24 時間設定とロケールを読んで時刻の形式を合わせます。',
-      clockMac: '<code>defaults read -g</code> の <code>AppleICUForce24HourTime</code>、<code>AppleICUForce12HourTime</code>、<code>AppleLocale</code>',
-      clockWin: '<code>HKCU\\Control Panel\\International</code> の <code>sShortTime</code> と <code>LocaleName</code>',
-      clockLinux: 'ロケールは <code>LC_ALL</code>、<code>LC_TIME</code>、<code>LANG</code> の順、12/24 時間は GNOME デスクトップで <code>clock-format</code> を読みます。',
-      faqTitle: 'よくある質問',
-      q1: 'ターミナルで行が二重に表示されませんか？',
-      a1: 'ターミナルに表示される <code>✻ … for Ns</code> の行はこの mod ではなく、Claude Code がもともと描画している TurnDuration の行です。mod はターミナルでは行を追加しないようコードで止めているので、二重に表示されることはありません。',
-      q2: 'どこに表示されますか？',
-      a2: 'ターミナル以外の画面（Claude Desktop など）で、回答の下に描画します。要約ブロックには付けません。',
-      q3: 'どこかにデータを送りますか？',
-      a3: '送りません。セッション開始時に OS の時計設定を読むコマンド（<code>defaults</code>、<code>reg</code>、<code>gsettings</code>）を自分のコンピューターで実行するだけです。',
-      q4: 'どの OS で確認していますか？',
-      a4: 'Ubuntu、Windows、macOS で CI が動いています。',
-      q5: '削除するには？',
-      a5: 'シェルで <code>claude plugin uninstall turn-duration</code> を実行します。',
-      repo: 'リポジトリ',
-      releases: 'リリース',
-      changelog: '変更履歴',
-      foot: 'MIT License. Anthropic とは関係のない非公式の mod です。',
-    },
-  };
-
+  // Each language has its own pre-rendered page (/, /ko/, /ja/), so search engines and link previews
+  // read the page in its own language without running this script. The script only adds behaviour.
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch {} },
   };
   const root = document.documentElement;
-  const SITE = 'https://m1nu0x0.github.io/claude-turn-duration/';
+  const here = root.lang;
 
-  // Language: ?lang= > saved > browser > English.
-  const pick = () => {
-    const q = new URLSearchParams(location.search).get('lang');
-    if (q && T[q]) return q;
-    const saved = store.get('lang');
-    if (saved && T[saved]) return saved;
-    const nav = (navigator.languages || [navigator.language || 'en']).map(l => l.slice(0, 2));
-    return nav.find(l => T[l]) || 'en';
-  };
-  let lang = pick();
-
-  const apply = () => {
-    const t = T[lang];
-    root.lang = lang;
-    document.title = t.htmlTitle;
-    document.querySelector('meta[name="description"]').content = t.desc;
-    document.querySelector('link[rel="canonical"]').href = SITE + (lang === 'en' ? '' : '?lang=' + lang);
-    document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t[el.dataset.i18n]; });
-    document.querySelectorAll('[data-i18n-alt]').forEach(el => { el.alt = t[el.dataset.i18nAlt]; });
-    document.querySelectorAll('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t[el.dataset.i18nAria]); });
-    document.querySelectorAll('[data-lang-btn]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.langBtn === lang)));
-  };
-
-  document.querySelectorAll('[data-lang-btn]').forEach(b => b.addEventListener('click', () => {
-    lang = b.dataset.langBtn;
-    store.set('lang', lang);
-    apply();
-    hero();
+  // Language: the redirect, if any, already ran in <head> (site/redirect.js). Choosing a language on
+  // the page saves it, and / goes there from then on.
+  document.querySelectorAll('[data-lang-link]').forEach(a => a.addEventListener('click', () => {
+    store.set('lang', a.dataset.langLink);
   }));
+
+  // When the browser's preferred language has its own page and the visitor has not chosen one, offer
+  // it in that language at the bottom of the page, instead of redirecting on a guess.
+  const offerLanguage = () => {
+    if (store.get('lang') || store.get('offerClosed')) return;
+    const offers = JSON.parse(document.body.dataset.offers);
+    const nav = (navigator.languages || [navigator.language || '']).map(l => l.slice(0, 2));
+    const l = nav.find(l => l === here || Object.hasOwn(offers, l));
+    if (!l || l === here) return;
+    const o = offers[l];
+    const box = document.getElementById('offer');
+    const [text, link, close] = box.children;
+    box.lang = l;
+    text.textContent = o.text;
+    link.textContent = o.go;
+    link.href = o.href;
+    link.addEventListener('click', () => store.set('lang', l));
+    close.textContent = o.close;
+    close.addEventListener('click', () => { box.hidden = true; store.set('offerClosed', '1'); });
+    box.hidden = false;
+  };
 
   // Theme: system unless chosen.
   const themeBtn = document.getElementById('theme');
@@ -461,30 +368,33 @@
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawTheme);
 
   // Copy: each button copies the command beside it.
-  document.querySelectorAll('.copy').forEach(btn => btn.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(btn.parentElement.querySelector('code').textContent);
-      btn.textContent = T[lang].copied;
-      setTimeout(() => { btn.textContent = T[lang].copy; }, 1600);
-    } catch {}
-  }));
+  document.querySelectorAll('.copy').forEach(btn => {
+    const label = btn.textContent;
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.parentElement.querySelector('code').textContent);
+        btn.textContent = document.body.dataset.copied;
+        setTimeout(() => { btn.textContent = label; }, 1600);
+      } catch {}
+    });
+  });
 
   // The hero: the question goes up, the answer types out, then the turn-duration line types out much faster.
-  // The clock reads in the page's language, like the rest of the page.
+  // The page is drawn with the time 2:48 PM; here the line gets the visitor's clock, in the page's language.
+  // site/build.mjs works out the same seconds for the drawn page, so keep the timings there in step.
   const LOCALES = { ko: 'ko-KR', en: 'en-US', ja: 'ja-JP' };
   const BUBBLE_AT = 100, ANSWER_AT = 450, ANSWER_MS = 22.5 / 0.7, LINE_GAP = 150, LINE_MS = 0.9375;
   const chat = document.getElementById('chat');
-  const ask = document.getElementById('ask');
   const answer = document.getElementById('answer');
   const line = document.getElementById('line');
+  const answerText = answer.querySelector('.sr').textContent;
   let timers = [];
 
-  const heroTexts = () => {
-    const t = T[lang];
+  const lineText = () => {
     // The turn runs from the question going up to the answer's last character.
-    const secs = Math.max(1, Math.round((ANSWER_AT - BUBBLE_AT + Array.from(t.answer).length * ANSWER_MS) / 1000));
-    const clock = new Intl.DateTimeFormat(LOCALES[lang], { hour: 'numeric', minute: '2-digit' }).format(new Date());
-    return { ask: t.ask, answer: t.answer, line: `✻ Worked for ${secs}s · done ${clock}` };
+    const secs = Math.max(1, Math.round((ANSWER_AT - BUBBLE_AT + Array.from(answerText).length * ANSWER_MS) / 1000));
+    const clock = new Intl.DateTimeFormat(LOCALES[here], { hour: 'numeric', minute: '2-digit' }).format(new Date());
+    return `✻ Worked for ${secs}s · done ${clock}`;
   };
   const fill = (p, text, shown) => {
     p.querySelector('.sr').textContent = text;
@@ -499,35 +409,27 @@
     return at + chars.length * ms;
   };
   const heroFinal = () => {
-    timers.forEach(clearTimeout);
-    timers = [];
-    const h = heroTexts();
     chat.classList.remove('pre');
-    ask.textContent = h.ask;
-    fill(answer, h.answer, h.answer);
-    fill(line, h.line, h.line);
+    fill(answer, answerText, answerText);
+    const l = lineText();
+    fill(line, l, l);
   };
   const heroPlay = () => {
-    timers.forEach(clearTimeout);
-    timers = [];
-    const h = heroTexts();
-    // Hide the bubble at once (no fall), so a replay only shows it rising.
+    // Hide the bubble at once (no fall), so it only shows rising.
     chat.classList.add('instant', 'pre');
     void chat.offsetWidth;
     chat.classList.remove('instant');
-    ask.textContent = h.ask;
-    fill(answer, h.answer, '');
-    fill(line, h.line, '');
+    const l = lineText();
+    fill(answer, answerText, '');
+    fill(line, l, '');
     timers.push(setTimeout(() => chat.classList.remove('pre'), BUBBLE_AT));
-    const answered = typeOut(answer, h.answer, ANSWER_AT, ANSWER_MS);
-    typeOut(line, h.line, answered + LINE_GAP, LINE_MS);
+    const answered = typeOut(answer, answerText, ANSWER_AT, ANSWER_MS);
+    typeOut(line, l, answered + LINE_GAP, LINE_MS);
   };
 
-  const hero = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? heroFinal() : heroPlay());
-
-  apply();
   drawTheme();
-  hero();
+  offerLanguage();
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) heroFinal(); else heroPlay();
 })();
 </script>
 </body>
