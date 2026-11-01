@@ -1,6 +1,11 @@
 {
   "site": "https://m1nu0x0.github.io/claude-turn-duration/",
   "updated": "2026-11-01",
+  "name": "TurnDuration for Claude",
+  "repo": "M1nu0x0/claude-turn-duration",
+  "plugin": "turn-duration",
+  "programmingLanguage": "TypeScript",
+  "favicon": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext x='16' y='25' font-size='26' text-anchor='middle' fill='%237A7A7A'%3E%E2%9C%BB%3C/text%3E%3C/svg%3E",
   "languages": {
     "en": {
       "path": "",

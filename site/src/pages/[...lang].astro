@@ -1,0 +1,63 @@
+---
+// One page per language (/, /ko/, /ja/). The words are in src/site.json; this file is the order of the sections.
+import site from 'virtual:plugin-site'
+import { LOCALES, staticPaths, turnSeconds } from '@m1nu0x0/claude-plugin-site'
+import PluginPage from '@m1nu0x0/claude-plugin-site/components/PluginPage.astro'
+import Hero from '@m1nu0x0/claude-plugin-site/components/Hero.astro'
+import Install from '@m1nu0x0/claude-plugin-site/components/Install.astro'
+import Faq from '@m1nu0x0/claude-plugin-site/components/Faq.astro'
+
+export const getStaticPaths = () => staticPaths(site)
+
+const { lang } = Astro.props
+const t = site.languages[lang].strings
+const img = (name: string) => `${import.meta.env.BASE_URL}images/${name}`
+// The hero's line as first drawn: the seconds the typing takes and 2:48 PM in the page's language. The
+// script below swaps in the visitor's own clock when the hero plays.
+const clock = new Intl.DateTimeFormat(LOCALES[lang], { hour: 'numeric', minute: '2-digit' }).format(new Date(2026, 0, 1, 14, 48))
+const line = `✻ Worked for ${turnSeconds(t.answer)}s · done ${clock}`
+---
+<PluginPage lang={lang}>
+  <Hero slot="hero" lang={lang} line={line} />
+
+  <Install lang={lang} />
+
+  <section aria-labelledby="screens">
+    <h2 id="screens" set:html={t.screensTitle} />
+    <div class="screens">
+      <figure>
+        <img src={img('desktop.png')} width="771" height="169" loading="lazy" alt={t.desktopAlt}>
+        <figcaption set:html={t.desktopCap} />
+      </figure>
+      <figure>
+        <img src={img('terminal.png')} width="303" height="113" loading="lazy" alt={t.terminalAlt}>
+        <figcaption set:html={t.terminalCap} />
+      </figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="how">
+    <h2 id="how" set:html={t.howTitle} />
+    <p set:html={t.how1} />
+  </section>
+
+  <section aria-labelledby="clock-h">
+    <h2 id="clock-h" set:html={t.clockTitle} />
+    <p set:html={t.clockLead} />
+    <dl class="os">
+      <dt>macOS</dt><dd set:html={t.clockMac} />
+      <dt>Windows</dt><dd set:html={t.clockWin} />
+      <dt>Linux</dt><dd set:html={t.clockLinux} />
+    </dl>
+  </section>
+
+  <Faq lang={lang} />
+
+  <script is:inline slot="scripts">
+    window.pluginSiteHeroLine = ({ lang, seconds }) => {
+      const locale = { en: 'en-US', ko: 'ko-KR', ja: 'ja-JP' }[lang]
+      const clock = new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' }).format(new Date())
+      return `✻ Worked for ${seconds}s · done ${clock}`
+    }
+  </script>
+</PluginPage>

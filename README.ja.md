@@ -14,7 +14,7 @@ Claude Code のターミナルは回答が終わるたびに、かかった時�
 
 | Claude Desktop（この mod） | ターミナル（Claude Code 標準） |
 | --- | --- |
-| ![Claude Desktop の回答の下に薄い斜体で表示された Churned for 5s · done 14:48 の行](docs/images/desktop.png) | ![Claude Code のターミナルで回答の下に表示された Crunched for 4s · done 1:15 PM の行](docs/images/terminal.png) |
+| ![Claude Desktop の回答の下に薄い斜体で表示された Churned for 5s · done 14:48 の行](site/public/images/desktop.png) | ![Claude Code のターミナルで回答の下に表示された Crunched for 4s · done 1:15 PM の行](site/public/images/terminal.png) |
 
 ## インストール
 
@@ -61,8 +61,7 @@ plugins/turn-duration/
     format.ts        単語・時間・時刻のフォーマット
   types/index.d.ts   $.state の型定義
   tests/             claude plugin test 用のテスト
-site/                サイトの元（ページのひな形、翻訳、スクリプト）と生成スクリプト
-docs/                スクリーンショット、site/ から生成した GitHub Pages サイト
+site/                GitHub Pages サイト（Astro）: src/site.json 翻訳、src/pages/ ページ、public/ スクリーンショット
 README.en.md, README.ja.md  README の翻訳
 ```
 
@@ -74,11 +73,12 @@ README.en.md, README.ja.md  README の翻訳
 claude plugin validate .                     # マーケットプレイス
 claude plugin validate plugins/turn-duration  # プラグイン
 claude plugin test plugins/turn-duration
-node site/build.mjs                           # site/ から docs/ のサイトを生成
-node site/og.mjs                              # 言語ごとのリンクプレビュー画像を生成（Playwright が必要）
+cd site && npm ci && npm run build           # サイトのビルドと検査（site/dist）
+cd site && npm run dev                        # ローカルでプレビュー
+cd site && npm run og                         # 言語ごとのリンクプレビュー画像を生成（Playwright が必要）
 ```
 
-サイトは `site/` を編集し、`node site/build.mjs` で `docs/` に言語別のページ（`/`、`/ko/`、`/ja/`）と `sitemap.xml` を生成して一緒にコミットします。`docs/` の HTML を直接編集すると CI が失敗します。ページの JSON-LD にプラグインのバージョンが入るので、バージョンを上げたときも生成し直します。内容を変えたら `site/i18n.json` の `updated` もその日の日付にします。変えないと、プルリクエストで CI が警告します。`site/i18n.json` の `ask`、`answer`、`ogImageLine`、`ogImageText` を変えたら、`node site/og.mjs` で `docs/images/og*.png` も生成し直してコミットします。
+サイトは [Astro](https://astro.build) と共通キット [claude-plugin-site](https://github.com/M1nu0x0/claude-plugin-site) で作ります。文言はすべて `site/src/site.json` に、セクションの順序は `site/src/pages/[...lang].astro` にあります。`npm run build` は言語別のページ（`/`、`/ko/`、`/ja/`）と `sitemap.xml` を生成したあと、クローラーが読むとおりに検査し（タイトルと説明の長さ、canonical、hreflang、OG、JSON-LD、リンク切れと画像切れ、HTML の妥当性）、ひとつでも外れると失敗します。main にマージされると Pages ワークフローがビルドしてデプロイします。ページの JSON-LD にプラグインのバージョンが入るので、バージョンを上げるとサイトもデプロイし直されます。内容を変えたら `site/src/site.json` の `updated` もその日の日付にします。変えないと、プルリクエストで CI が警告します。`ask`、`answer`、`ogImageLine`、`ogImageText` を変えたら、`npm run og` で `site/public/images/og*.png` も生成し直してコミットします。
 
 新しいバージョンは、`plugins/turn-duration/.claude-plugin/plugin.json` の `version` を上げる PR をマージしてから、同じバージョンで `vX.Y.Z` の Release を作成します。タグが作成されると、CI がタグと `version` が一致するかを確認します。
 

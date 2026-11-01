@@ -14,7 +14,7 @@ Claude Code 터미널은 답변이 끝날 때마다 걸린 시간과 끝난 시�
 
 | Claude Desktop (이 mod) | 터미널 (Claude Code 기본) |
 | --- | --- |
-| ![Claude Desktop 답변 아래에 흐린 기울임꼴로 표시된 Churned for 5s · done 14:48 줄](docs/images/desktop.png) | ![Claude Code 터미널 답변 아래의 Crunched for 4s · done 1:15 PM 줄](docs/images/terminal.png) |
+| ![Claude Desktop 답변 아래에 흐린 기울임꼴로 표시된 Churned for 5s · done 14:48 줄](site/public/images/desktop.png) | ![Claude Code 터미널 답변 아래의 Crunched for 4s · done 1:15 PM 줄](site/public/images/terminal.png) |
 
 ## 설치
 
@@ -61,8 +61,7 @@ plugins/turn-duration/
     format.ts        단어, 시간, 시각 포맷
   types/index.d.ts   $.state 타입 계약
   tests/             claude plugin test 용 테스트
-site/                사이트 원본(페이지 틀, 번역, 스크립트)과 생성기
-docs/                스크린샷, site/에서 생성한 GitHub Pages 사이트
+site/                GitHub Pages 사이트(Astro): src/site.json 번역, src/pages/ 페이지, public/ 스크린샷
 README.en.md, README.ja.md  README 번역본
 ```
 
@@ -74,11 +73,12 @@ README.en.md, README.ja.md  README 번역본
 claude plugin validate .                     # 마켓플레이스
 claude plugin validate plugins/turn-duration  # 플러그인
 claude plugin test plugins/turn-duration
-node site/build.mjs                           # site/에서 docs/ 사이트 생성
-node site/og.mjs                              # 언어별 링크 미리보기 이미지 생성(Playwright 필요)
+cd site && npm ci && npm run build           # 사이트 빌드와 검사(site/dist)
+cd site && npm run dev                        # 로컬 미리보기
+cd site && npm run og                         # 언어별 링크 미리보기 이미지 생성(Playwright 필요)
 ```
 
-사이트는 `site/`를 고친 뒤 `node site/build.mjs`로 `docs/`의 언어별 페이지(`/`, `/ko/`, `/ja/`)와 `sitemap.xml`을 만들어 함께 커밋합니다. `docs/`의 HTML을 직접 고치면 CI가 실패합니다. 페이지의 JSON-LD에 플러그인 버전이 들어가므로 버전을 올릴 때도 다시 생성합니다. 내용이 바뀌면 `site/i18n.json`의 `updated`도 그날 날짜로 바꿉니다. 바꾸지 않으면 PR에서 CI가 경고합니다. `site/i18n.json`의 `ask`, `answer`, `ogImageLine`, `ogImageText`를 바꾸면 `node site/og.mjs`로 `docs/images/og*.png`도 다시 만들어 커밋합니다.
+사이트는 [Astro](https://astro.build)와 공용 키트 [claude-plugin-site](https://github.com/M1nu0x0/claude-plugin-site)로 만듭니다. 문구는 모두 `site/src/site.json`에, 섹션 순서는 `site/src/pages/[...lang].astro`에 있습니다. `npm run build`는 언어별 페이지(`/`, `/ko/`, `/ja/`)와 `sitemap.xml`을 만든 뒤 크롤러가 읽는 그대로 검사하고(제목·설명 길이, canonical, hreflang, OG, JSON-LD, 깨진 링크와 이미지, HTML 검증), 하나라도 어긋나면 실패합니다. main에 병합되면 Pages 워크플로가 빌드해 배포합니다. 페이지의 JSON-LD에 플러그인 버전이 들어가므로 버전을 올리면 사이트도 다시 배포됩니다. 내용이 바뀌면 `site/src/site.json`의 `updated`도 그날 날짜로 바꿉니다. 바꾸지 않으면 PR에서 CI가 경고합니다. `ask`, `answer`, `ogImageLine`, `ogImageText`를 바꾸면 `npm run og`로 `site/public/images/og*.png`도 다시 만들어 커밋합니다.
 
 새 버전은 `plugins/turn-duration/.claude-plugin/plugin.json`의 `version`을 올리는 PR을 병합한 뒤, 같은 버전으로 `vX.Y.Z` Release를 만듭니다. 태그가 생기면 CI가 태그와 `version`이 같은지 확인합니다.
 

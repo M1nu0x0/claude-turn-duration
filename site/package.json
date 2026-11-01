@@ -1,0 +1,16 @@
+{
+  "name": "claude-turn-duration-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "lint": "plugin-site lint",
+    "og": "plugin-site og"
+  },
+  "dependencies": {
+    "@m1nu0x0/claude-plugin-site": "git+https://github.com/M1nu0x0/claude-plugin-site.git#v0.1.0",
+    "astro": "^7.4.4"
+  }
+}
