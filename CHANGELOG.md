@@ -10,6 +10,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ### Changed
 
+- The site uses [claude-plugin-site](https://github.com/M1nu0x0/claude-plugin-site) v0.1.1, whose code is now type checked; the pages it builds are the same
 - Dependabot waits 7 days after a release before proposing an update (`cooldown: default-days: 7`), so a malicious release that is pulled within a week never reaches a pull request; security updates skip the wait
 - The site has one pre-rendered page per language (`/`, `/ko/`, `/ja/`) instead of one page that switched language in the browser, so search engines and link previews read each language without running JavaScript; each page has its own canonical URL, title, description, Open Graph tags, link-preview image and JSON-LD, the language switch is plain links, and the old `?lang=` links go to the matching page
 - The site no longer switches by browser language: it offers that language's page in a small bar at the bottom, and only `/` goes to a language the visitor chose before, from a script in `<head>`

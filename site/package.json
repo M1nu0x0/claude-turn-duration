@@ -10,7 +10,7 @@
     "og": "plugin-site og"
   },
   "dependencies": {
-    "@m1nu0x0/claude-plugin-site": "git+https://github.com/M1nu0x0/claude-plugin-site.git#v0.1.0",
+    "@m1nu0x0/claude-plugin-site": "git+https://github.com/M1nu0x0/claude-plugin-site.git#v0.1.1",
     "astro": "^7.4.4"
   }
 }
