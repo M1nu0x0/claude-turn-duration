@@ -10,6 +10,7 @@ All notable changes to this project are recorded here. The format follows [Keep 
 
 ### Changed
 
+- Dependabot waits 7 days after a release before proposing an update (`cooldown: default-days: 7`), so a malicious release that is pulled within a week never reaches a pull request; security updates skip the wait
 - The site has one pre-rendered page per language (`/`, `/ko/`, `/ja/`) instead of one page that switched language in the browser, so search engines and link previews read each language without running JavaScript; each page has its own canonical URL, title, description, Open Graph tags, link-preview image and JSON-LD, the language switch is plain links, and the old `?lang=` links go to the matching page
 - The site no longer switches by browser language: it offers that language's page in a small bar at the bottom, and only `/` goes to a language the visitor chose before, from a script in `<head>`
 - The titles, descriptions and first lines say what people search for (response time, how long Claude took, plugin), and two new questions cover seeing the time in Claude Desktop and the Churned/Crunched words
